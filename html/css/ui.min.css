@@ -700,6 +700,11 @@ input#secondarysearch:-ms-input-placeholder {
 
 }
 
+.item .details-wrapper {
+    display: flex;
+    align-items: center;
+}
+
 .item .count,
 .item .weight {
     margin-top: 62px;
