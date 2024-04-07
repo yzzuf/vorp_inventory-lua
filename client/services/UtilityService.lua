@@ -76,6 +76,7 @@ function Utils.addItems(name, id, amount)
 			canRemove = svItems[name].can_remove,
 			desc = svItems[name].desc,
 			group = svItems[name].group or 1,
+			weight = svItems[name].weight or 0.0,
 		})
 	end
 end

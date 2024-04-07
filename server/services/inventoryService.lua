@@ -396,7 +396,8 @@ function InventoryService.addItem(target, invId, name, amount, metadata, cb)
 				canRemove = svItem:getCanRemove(),
 				owner = charIdentifier,
 				desc = svItem:getDesc(),
-				group = svItem:getGroup()
+				group = svItem:getGroup(),
+				weight = svItem:getWeight(),
 			})
 			userInventory[craftedItem.id] = item
 			if invId == "default" then
@@ -960,6 +961,7 @@ function InventoryService.GiveItem(itemId, amount, target)
 						owner = targetCharIdentifier,
 						desc = svItem:getDesc(),
 						group = svItem:getGroup(),
+						weight = svItem:getWeight(),
 					})
 					targetInventory[craftedItem.id] = targetItem
 					updateClient(targetItem)
@@ -1014,6 +1016,7 @@ function InventoryService.getInventory()
 						owner = sourceCharId,
 						desc = dbItem.desc,
 						group = dbItem.group,
+						weight = dbItem.weight,
 					})
 				end
 			end

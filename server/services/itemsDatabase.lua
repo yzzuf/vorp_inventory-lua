@@ -80,35 +80,36 @@ end
 
 
 MySQL.ready(function()
-	-- load all items from database
-	DBService.queryAsync("SELECT * FROM items", {}, function(result)
-		for _, db_item in pairs(result) do
-			if db_item.id then
-				local item = Item:New({
-					id = db_item.id,
-					item = db_item.item,
-					metadata = db_item.metadata or {},
-					label = db_item.label,
-					limit = db_item.limit,
-					type = db_item.type,
-					canUse = db_item.usable,
-					canRemove = db_item.can_remove,
-					desc = db_item.desc,
-					group = db_item.groupId or 1
-				})
-				ServerItems[item.item] = item
-			end
-		end
-	end)
+    -- load all items from database
+    DBService.queryAsync("SELECT * FROM items", {}, function(result)
+        for _, db_item in pairs(result) do
+            if db_item.id then
+                local item = Item:New({
+                    id = db_item.id,
+                    item = db_item.item,
+                    metadata = db_item.metadata or {},
+                    label = db_item.label,
+                    limit = db_item.limit,
+                    type = db_item.type,
+                    canUse = db_item.usable,
+                    canRemove = db_item.can_remove,
+                    desc = db_item.desc,
+                    group = db_item.groupId or 1,
+                    weight = db_item.weight or 0.0
+                })
+                ServerItems[item.item] = item
+            end
+        end
+    end)
 
-	--load all secondary weapons from database
-	DBService.queryAsync("SELECT * FROM loadout", {}, function(result)
-		for _, db_weapon in pairs(result) do
-			if db_weapon.curr_inv ~= "default" then
-				loadAllWeapons(db_weapon)
-			end
-		end
-	end)
+    -- load all secondary weapons from database
+    DBService.queryAsync("SELECT * FROM loadout", {}, function(result)
+        for _, db_weapon in pairs(result) do
+            if db_weapon.curr_inv ~= "default" then
+                loadAllWeapons(db_weapon)
+            end
+        end
+    end)
 end)
 
 

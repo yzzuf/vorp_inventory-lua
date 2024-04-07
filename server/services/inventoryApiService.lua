@@ -53,72 +53,76 @@ local function respond(cb, result)
 	return result
 end
 
---- check inventory limit
----@param player number source
----@param amount number amount of items
----@param cb fun(canCarry: boolean)? async or sync callback
+--- Check if the player can carry the specified amount of items based on weight.
+---@param player number The player's source
+---@param amount number The amount of items to check
+---@param cb fun(canCarry: boolean)? The callback function
 function InventoryAPI.canCarryAmountItem(player, amount, cb)
-	local _source = player
-	local sourceCharacter = Core.getUser(_source).getUsedCharacter
-	local identifier = sourceCharacter.identifier
-	local charid = sourceCharacter.charIdentifier
-	local invCapacity = sourceCharacter.invCapacity
-	local userInventory = UsersInventories.default[identifier]
+    local _source = player
+    local sourceCharacter = Core.getUser(_source).getUsedCharacter
+    local identifier = sourceCharacter.identifier
+    local charid = sourceCharacter.charIdentifier
+    local weightCapacity = sourceCharacter.weightCapacity
+    local userInventory = UsersInventories.default[identifier]
 
-	local function cancarryammount(identifier, charid, amount, limit)
-		local totalAmount = InventoryAPI.getUserTotalCountItems(identifier, charid)
-		return limit ~= -1 and totalAmount + amount <= limit and userInventory ~= nil
-	end
+    local function canCarryAmount(identifier, charid, amount, weightCapacity)
+        local totalWeight = InventoryAPI.getUserTotalWeightItems(identifier, charid)
+        return weightCapacity ~= -1 and totalWeight + amount <= weightCapacity and userInventory ~= nil
+    end
 
-	local canCarry = cancarryammount(identifier, charid, amount, invCapacity)
-	return respond(cb, canCarry)
+    local canCarry = canCarryAmount(identifier, charid, amount, weightCapacity)
+    return respond(cb, canCarry)
 end
 
 exports("canCarryItems", InventoryAPI.canCarryAmountItem)
 
 
----check limit of item
----@param player number source
----@param itemName string item name
----@param amount number amount of item
----@param cb fun(canCarry: boolean)? async or sync callback
+--- Check if the player can carry the specified amount of an item based on item limit and inventory weight capacity.
+---@param player number The player's source
+---@param itemName string The name of the item to check
+---@param amount number The amount of the item to check
+---@param cb fun(canCarry: boolean)? The callback function
 function InventoryAPI.canCarryItem(player, itemName, amount, cb)
-	local function exceedsItemLimit(identifier, itemName, amount, limit)
-		local items = SvUtils.FindAllItemsByName("default", identifier, itemName)
-		local count = 0
-		for _, item in pairs(items) do
-			count = count + item:getCount()
-		end
-		return count + amount > limit
-	end
+    local function exceedsItemLimit(identifier, itemName, amount, limit)
+        local items = SvUtils.FindAllItemsByName("default", identifier, itemName)
+        local count = 0
+        for _, item in pairs(items) do
+            count = count + item:getCount()
+        end
+        return count + amount > limit
+    end
 
-	local function exceedsInventoryLimit(identifier, charid, amount, invCapacity)
-		local totalAmount = InventoryAPI.getUserTotalCountItems(identifier, charid)
-		return invCapacity ~= -1 and totalAmount + amount > invCapacity
-	end
+    local function exceedsWeightLimit(identifier, charid, amount, weightCapacity)
+        local totalWeight = InventoryAPI.getUserTotalWeightItems(identifier, charid)
+        local svItem = ServerItems[itemName]
+        local itemWeight = svItem.weight * amount
 
-	local _source = player
-	local sourceCharacter = Core.getUser(_source).getUsedCharacter
-	local identifier = sourceCharacter.identifier
-	local charid = sourceCharacter.charIdentifier
-	local invCapacity = sourceCharacter.invCapacity
-	local svItem = ServerItems[itemName]
-	local canCarry = false
+        return totalWeight + itemWeight > weightCapacity
+    end
 
-	if not SvUtils.DoesItemExist(itemName, "InventoryAPI.canCarryItem") then
-		return respond(cb, false)
-	end
+    local _source = player
+    local sourceCharacter = Core.getUser(_source).getUsedCharacter
+    local identifier = sourceCharacter.identifier
+    local charid = sourceCharacter.charIdentifier
+    local weightCapacity = sourceCharacter.weightCapacity
+    local svItem = ServerItems[itemName]
+    local canCarry = false
 
-	local limit = svItem.limit
+    if not SvUtils.DoesItemExist(itemName, "InventoryAPI.canCarryItem") then
+        return respond(cb, false)
+    end
 
-	if limit ~= -1 and not exceedsItemLimit(identifier, itemName, amount, limit) then
-		canCarry = not exceedsInventoryLimit(identifier, charid, amount, invCapacity)
-	elseif limit == -1 then
-		canCarry = not exceedsInventoryLimit(identifier, charid, amount, invCapacity)
-	end
+    local limit = svItem.limit
 
-	return respond(cb, canCarry)
+    if limit ~= -1 and not exceedsItemLimit(identifier, itemName, amount, limit) then
+        canCarry = not exceedsWeightLimit(identifier, charid, amount, weightCapacity)
+    elseif limit == -1 then
+        canCarry = not exceedsWeightLimit(identifier, charid, amount, weightCapacity)
+    end
+
+    return respond(cb, canCarry)
 end
+
 
 exports("canCarryItem", InventoryAPI.canCarryItem)
 
@@ -150,6 +154,7 @@ function InventoryAPI.getInventory(player, cb)
 				limit = item:getLimit(),
 				canUse = item:getCanUse(),
 				group = item:getGroup(),
+				weight = item:getWeight(),
 			}
 			table.insert(playerItems, newItem)
 		end
@@ -584,7 +589,8 @@ function InventoryAPI.addItem(player, name, amount, metadata, cb)
 				canRemove = svItem:getCanRemove(),
 				owner = charIdentifier,
 				desc = svItem:getDesc(),
-				group = svItem:getGroup() or 1
+				group = svItem:getGroup() or 1,
+				weight = svItem:getWeight() or 0.0,
 			})
 			userInventory[craftedItem.id] = item
 			TriggerClientEvent("vorpCoreClient:addItem", _source, item)
@@ -625,6 +631,7 @@ function InventoryAPI.getItemByMainId(player, mainid, cb)
 					limit = item:getLimit(),
 					canUse = item:getCanUse(),
 					group = item:getGroup(),
+					weight = item:getWeight(),
 				}
 				return respond(cb, itemRequested)
 			end
@@ -790,6 +797,7 @@ function InventoryAPI.setItemMetadata(player, itemId, metadata, amount, cb)
 					owner = charId,
 					desc = item:getDesc(),
 					group = item:getGroup(),
+					weight = item:getWeight(),
 				})
 			userInventory[craftedItem.id] = item
 			TriggerClientEvent("vorpCoreClient:addItem", _source, item)
@@ -1258,7 +1266,7 @@ end
 
 exports("subWeapon", InventoryAPI.subWeapon)
 
-
+--[[
 ---get User by identifier total count of items
 ---@param identifier string user identifier
 ---@param charid number user charid
@@ -1276,6 +1284,29 @@ function InventoryAPI.getUserTotalCountItems(identifier, charid)
 		end
 	end
 	return userTotalItemCount
+end
+]]
+
+--- Get the total weight of items for a user identified by their identifier and charid.
+---@param identifier string User identifier
+---@param charid number User charid
+---@return number Total weight of items
+function InventoryAPI.getUserTotalWeightItems(identifier, charid)
+    local userTotalWeight = 0
+    local userInventory = UsersInventories.default[identifier]
+
+    for _, item in pairs(userInventory or {}) do
+        if item:getCount() == nil then
+            userInventory[item:getId()] = nil
+            DBService.DeleteItem(charid, item:getId())
+        else
+            local itemWeight = item:getCount() * item:getWeight()
+            userTotalWeight = userTotalWeight + itemWeight
+        end
+    end
+	
+	userTotalWeight = tonumber(string.format("%.2f", userTotalWeight))
+    return userTotalWeight
 end
 
 ---get User by identifier total count of weapons
@@ -1522,6 +1553,7 @@ function InventoryAPI.openInventory(player, id)
 					owner = item.character_id,
 					desc = dbItem.desc,
 					group = dbItem.group or 1,
+					weight = dbItem.weight or 0.0,
 				})
 			end
 		end

@@ -13,6 +13,8 @@
 ---@field canUse boolean  @Item can use
 ---@field canRemove boolean @Item can remove
 ---@field desc string @Item description
+---@field weight number @Item weight
+
 Item = {}
 
 Item.id = nil
@@ -35,144 +37,153 @@ Item.group = nil
 
 -- ID
 function Item:setId(id)
-	self.id = id
+    self.id = id
 end
 
 function Item:getId()
-	return self.id
+    return self.id
 end
 
 -- NAME
 function Item:setName(name)
-	self.name = name
+    self.name = name
 end
 
 function Item:getGroup()
-	return self.group
+    return self.group
 end
 
 function Item:getName()
-	return self.name
+    return self.name
 end
 
 -- DESCRIPTION
 function Item:getDesc()
-	return self.desc
+    return self.desc
 end
 
 function Item:setDesc(desc)
-	self.desc = desc
+    self.desc = desc
 end
 
 -- LABEL
 function Item:setLabel(label)
-	self.label = label
+    self.label = label
 end
 
 function Item:getLabel()
-	return self.label
+    return self.label
 end
 
 -- TYPE
 function Item:setType(type)
-	self.type = type
+    self.type = type
 end
 
 function Item:getType()
-	return self.type
+    return self.type
 end
 
 -- Model
 function Item:setModel(model)
-	self.model = model
+    self.model = model
 end
 
 function Item:getModel()
-	return self.model
+    return self.model
 end
 
 -- Metadata
 function Item:setMetadata(metadata)
-	if metadata then
-		self.metadata = metadata
-	end
+    if metadata then
+        self.metadata = metadata
+    end
 end
 
 function Item:getMetadata()
-	return self.metadata
+    return self.metadata
 end
 
 -- COUNT
 function Item:setCount(amount)
-	self.count = amount
+    self.count = amount
 end
 
 function Item:getCount()
-	return self.count
+    return self.count
 end
 
 function Item:addCount(amount, ignoreStackLimit)
-	if (self.count + amount <= self.limit) or ignoreStackLimit then
-		self.count = self.count + amount
-		return true
-	end
-	return false
+    if (self.count + amount <= self.limit) or ignoreStackLimit then
+        self.count = self.count + amount
+        return true
+    end
+    return false
 end
 
 function Item:quitCount(amount)
-	if not amount then
-		if Config.Debug then
-			print('[^3Item quitCount^7]^1 Error: given amount is nil^7')
-		end
-		return
-	end
-	self.count = self.count - amount
+    if not amount then
+        if Config.Debug then
+            print('[^3Item quitCount^7]^1 Error: given amount is nil^7')
+        end
+        return
+    end
+    self.count = self.count - amount
 end
 
 -- LIMIT
 function Item:setLimit(limit)
-	self.limit = limit
+    self.limit = limit
 end
 
 function Item:getLimit()
-	return self.limit
+    return self.limit
+end
+
+-- WEIGHT
+function Item:setWeight(weight)
+    self.weight = weight
+end
+
+function Item:getWeight()
+    return self.weight
 end
 
 -- CanUse
 function Item:setCanUse(canUse)
-	self.canUse = canUse
+    self.canUse = canUse
 end
 
 function Item:getCanUse()
-	return self.canUse
+    return self.canUse
 end
 
 -- CanRemove
 function Item:setCanRemove(canRemove)
-	self.canRemove = canRemove
+    self.canRemove = canRemove
 end
 
 function Item:getCanRemove()
-	return self.canRemove
+    return self.canRemove
 end
 
 function Item:getOwner()
-	return self.owner
+    return self.owner
 end
 
 -- DropOnDeath
 function Item:setDropOnDeath(dropOnDeath)
-	self.dropOnDeath = dropOnDeath
+    self.dropOnDeath = dropOnDeath
 end
 
 function Item:getDropOnDeath()
-	return self.dropOnDeath
+    return self.dropOnDeath
 end
 
 ---@return Item Item class
 function Item:New(t)
-	t = t or {}
-	setmetatable(t, self)
-	self.__index = self
-	return t
+    t = t or {}
+    setmetatable(t, self)
+    self.__index = self
+    return t
 end

@@ -13,7 +13,6 @@ AddEventHandler("syn:stopscene", function(x) -- new
     TriggerClientEvent("inv:dropstatus", _source, x)
 end)
 
-
 RegisterServerEvent("vorpinventory:check_slots")
 AddEventHandler("vorpinventory:check_slots", function()
     local _source = source
@@ -24,15 +23,15 @@ AddEventHandler("vorpinventory:check_slots", function()
     end
 
     User = User.getUsedCharacter
-    local slots = User.invCapacity
+    local weightCapacity = User.weightCapacity
     local identifier = User.identifier
     local charid = User.charIdentifier
     local money = User.money
     local gold = User.gold
     local rol = User.rol
-    local stufftosend = InventoryAPI.getUserTotalCountItems(identifier, charid)
+    local totalWeight = InventoryAPI.getUserTotalWeightItems(identifier, charid)  -- Update this function to calculate the total weight
 
-    TriggerClientEvent("syn:getnuistuff", _source, stufftosend, slots, money, gold, rol)
+    TriggerClientEvent("syn:getnuistuff", _source, totalWeight, weightCapacity, money, gold, rol)
 end)
 
 

@@ -40,6 +40,7 @@ function InventoryService.receiveItem(name, id, amount, metadata)
 			canRemove = svItems[name].canRemove,
 			desc = svItems[name].desc,
 			group = svItems[name].group or 1,
+			weight = svItems[name].weight or 0.0,
 		})
 	end
 	NUIService.LoadInv()
@@ -205,6 +206,7 @@ function InventoryService.getInventory(inventory)
 					canRemove = dbItem.canRemove,
 					desc = dbItem.desc,
 					group = dbItem.group or 1,
+					weight = dbItem.weight or 0.0,
 				})
 
 				UserInventory[item.id] = newItem
